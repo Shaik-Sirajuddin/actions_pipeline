@@ -7,14 +7,13 @@ class GithubNotifier implements Serializable {
 
   def postComment(String body) {
     def payload = groovy.json.JsonOutput.toJson([body: body])
-    script.httpRequest(
-      httpMode: 'POST',
-      url: "https://api.github.com/repos/${script.env.REPO}/issues/${script.env.PR_ID}/comments",
-      customHeaders: [[name: 'Authorization', value: "Bearer ${script.env.GITHUB_TOKEN}"]],
-      contentType: 'APPLICATION_JSON',
-      requestBody: payload,
-      validResponseCodes: '200:399'
-    )
+    script.sh """
+      curl -s -X POST \\
+        -H "Authorization: Bearer ${script.env.GITHUB_TOKEN}" \\
+        -H "Content-Type: application/json" \\
+        -d '${payload}' \\
+        "https://api.github.com/repos/${script.env.REPO}/issues/${script.env.PR_ID}/comments"
+    """
   }
 
   def setCommitStatus(String context, String state, String description) {
@@ -25,14 +24,13 @@ class GithubNotifier implements Serializable {
       context    : "jenkins/${context}",
       target_url : script.env.BUILD_URL
     ])
-    script.httpRequest(
-      httpMode: 'POST',
-      url: "https://api.github.com/repos/${script.env.REPO}/statuses/${sha}",
-      customHeaders: [[name: 'Authorization', value: "Bearer ${script.env.GITHUB_TOKEN}"]],
-      contentType: 'APPLICATION_JSON',
-      requestBody: payload,
-      validResponseCodes: '200:399'
-    )
+    script.sh """
+      curl -s -X POST \\
+        -H "Authorization: Bearer ${script.env.GITHUB_TOKEN}" \\
+        -H "Content-Type: application/json" \\
+        -d '${payload}' \\
+        "https://api.github.com/repos/${script.env.REPO}/statuses/${sha}"
+    """
   }
 
   def publishComment() {
