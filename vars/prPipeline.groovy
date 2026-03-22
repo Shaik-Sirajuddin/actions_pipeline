@@ -113,20 +113,3 @@ def call(Map config = [:]) {
     }
   }
 }
-```
-
----
-
-**What you'll see in the console:**
-```
-▶ [START] VaultHelper.fetchGithubToken
-✅ [DONE]  VaultHelper.fetchGithubToken — 0.83s
-
-▶ [START] ActionRunner.discover
-✅ [DONE]  ActionRunner.discover — 0.12s
-
-▶ [START] ActionRunner.runAll
-✅ [DONE]  ActionRunner.runAll — 14.37s     ← if this is huge, that's your stall
-
-▶ [START] GithubNotifier.publishComment
-❌ [FAIL]  GithubNotifier.publishComment — 2.1s — <error message>
