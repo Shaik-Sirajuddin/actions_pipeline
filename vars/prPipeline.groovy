@@ -13,7 +13,10 @@ def call(Map config = [:]) {
     tools { go "${cfg.goVersion}" }
 
     environment {
-      REPO         = "${env.CHANGE_REPOSITORY ?: 'org/repo'}"
+      REPO         = "${env.GIT_URL
+                        ?.replaceAll('https://github.com/', '')
+                        ?.replaceAll('\\.git$', '')
+                      ?: 'unknown/unknown'}"
       PR_ID        = "${env.CHANGE_ID}"
       PR_AUTHOR    = "${env.CHANGE_AUTHOR}"
       JOB_ID       = "${env.JOB_NAME}-${env.BUILD_NUMBER}"
