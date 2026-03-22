@@ -6,7 +6,7 @@ class MetricsPublisher implements Serializable {
   MetricsPublisher(script) { this.script = script }
 
   def publish(String pushgatewayUrl) {
-    def results = new groovy.json.JsonSlurper().parseText(script.env.ACTION_RESULTS_JSON)
+    def results = new groovy.json.JsonSlurperClassic().parseText(script.env.ACTION_RESULTS_JSON)
     def passed  = results.count { it.status == 'pass' }
     def failed  = results.count { it.status == 'fail' }
     def labels  = "repository=\"${script.env.REPO}\",pr_id=\"${script.env.PR_ID}\",pr_author=\"${script.env.PR_AUTHOR}\",job_id=\"${script.env.JOB_ID}\""

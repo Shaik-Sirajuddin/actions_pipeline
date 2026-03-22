@@ -34,7 +34,7 @@ class GithubNotifier implements Serializable {
   }
 
   def publishComment() {
-    def results   = new groovy.json.JsonSlurper().parseText(script.env.ACTION_RESULTS_JSON)
+    def results   = new groovy.json.JsonSlurperClassic().parseText(script.env.ACTION_RESULTS_JSON)
     def failed    = results.count { it.status == 'fail' }
     def totalTime = String.format("%.2f", results.sum { it.execution_time } as double)
 
