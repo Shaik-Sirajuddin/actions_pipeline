@@ -10,7 +10,7 @@ class GithubNotifier implements Serializable {
     script.httpRequest(
       httpMode: 'POST',
       url: "https://api.github.com/repos/${script.env.REPO}/issues/${script.env.PR_ID}/comments",
-      customHeaders: [[name: 'Authorization', value: "token ${script.env.GITHUB_TOKEN}"]],
+      customHeaders: [[name: 'Authorization', value: "Bearer ${script.env.GITHUB_TOKEN}"]],
       contentType: 'APPLICATION_JSON',
       requestBody: payload,
       validResponseCodes: '200:399'
@@ -18,12 +18,20 @@ class GithubNotifier implements Serializable {
   }
 
   def setCommitStatus(String context, String state, String description) {
-    script.githubNotify(
-      credentialsId: 'github-credentials',
-      context      : "jenkins/${context}",
-      status       : state.toUpperCase(),
-      description  : description,
-      targetUrl    : script.env.BUILD_URL
+    def sha = script.sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+    def payload = groovy.json.JsonOutput.toJson([
+      state      : state,
+      description: description,
+      context    : "jenkins/${context}",
+      target_url : script.env.BUILD_URL
+    ])
+    script.httpRequest(
+      httpMode: 'POST',
+      url: "https://api.github.com/repos/${script.env.REPO}/statuses/${sha}",
+      customHeaders: [[name: 'Authorization', value: "Bearer ${script.env.GITHUB_TOKEN}"]],
+      contentType: 'APPLICATION_JSON',
+      requestBody: payload,
+      validResponseCodes: '200:399'
     )
   }
 
