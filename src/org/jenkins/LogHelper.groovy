@@ -10,12 +10,16 @@ class LogHelper implements Serializable {
     script.echo "▶ [START] ${label}"
     try {
       def result = body()
-      def elapsed = ((System.currentTimeMillis() - start) / 1000).round(2)
-      script.echo "✅ [DONE]  ${label} — ${elapsed}s"
+      def elapsed = (System.currentTimeMillis() - start) / 1000.0
+      // ❌ .round(2) doesn't work in CPS sandbox
+      // ✅ use String.format instead
+      def elapsedStr = String.format("%.2f", elapsed)
+      script.echo "✅ [DONE]  ${label} — ${elapsedStr}s"
       return result
     } catch (err) {
-      def elapsed = ((System.currentTimeMillis() - start) / 1000).round(2)
-      script.echo "❌ [FAIL]  ${label} — ${elapsed}s — ${err.message}"
+      def elapsed = (System.currentTimeMillis() - start) / 1000.0
+      def elapsedStr = String.format("%.2f", elapsed)
+      script.echo "❌ [FAIL]  ${label} — ${elapsedStr}s — ${err.message}"
       throw err
     }
   }

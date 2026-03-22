@@ -37,7 +37,7 @@ class GithubNotifier implements Serializable {
     def results   = new groovy.json.JsonSlurper().parseText(script.env.ACTION_RESULTS_JSON)
     def passed    = results.count { it.status == 'pass' }
     def failed    = results.count { it.status == 'fail' }
-    def totalTime = results.sum { it.execution_time }.round(2)
+    def totalTime = String.format("%.2f", results.sum { it.execution_time } as double)
 
     def summary = failed == 0
       ? "## ✅ CI Passed — All ${results.size()} actions succeeded"

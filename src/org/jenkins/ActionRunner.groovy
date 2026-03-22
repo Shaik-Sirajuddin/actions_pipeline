@@ -48,7 +48,9 @@ class ActionRunner implements Serializable {
         status = 'fail'
       }
 
-      def executionTime = ((System.currentTimeMillis() - startTime) / 1000).round(2)
+        def executionTime = Double.parseDouble(
+        String.format("%.2f", (System.currentTimeMillis() - startTime) / 1000.0)
+      )
 
       results.add([
         job_id        : script.env.JOB_ID,
