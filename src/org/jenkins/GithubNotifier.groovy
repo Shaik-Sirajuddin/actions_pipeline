@@ -7,13 +7,14 @@ class GithubNotifier implements Serializable {
 
   def postComment(String body) {
     def payload = groovy.json.JsonOutput.toJson([body: body])
-    script.sh """
-      curl -s -X POST \
-        -H "Authorization: token ${script.env.GITHUB_TOKEN}" \
-        -H "Content-Type: application/json" \
-        -d '${payload}' \
-        "https://api.github.com/repos/${script.env.REPO}/issues/${script.env.PR_ID}/comments"
-    """
+    script.httpRequest(
+      httpMode: 'POST',
+      url: "https://api.github.com/repos/${script.env.REPO}/issues/${script.env.PR_ID}/comments",
+      customHeaders: [[name: 'Authorization', value: "token ${script.env.GITHUB_TOKEN}"]],
+      contentType: 'APPLICATION_JSON',
+      requestBody: payload,
+      validResponseCodes: '200:399'
+    )
   }
 
   def setCommitStatus(String context, String state, String description) {
@@ -24,18 +25,18 @@ class GithubNotifier implements Serializable {
       context    : "jenkins/${context}",
       target_url : script.env.BUILD_URL
     ])
-    script.sh """
-      curl -s -X POST \
-        -H "Authorization: token ${script.env.GITHUB_TOKEN}" \
-        -H "Content-Type: application/json" \
-        -d '${payload}' \
-        "https://api.github.com/repos/${script.env.REPO}/statuses/${sha}"
-    """
+    script.httpRequest(
+      httpMode: 'POST',
+      url: "https://api.github.com/repos/${script.env.REPO}/statuses/${sha}",
+      customHeaders: [[name: 'Authorization', value: "token ${script.env.GITHUB_TOKEN}"]],
+      contentType: 'APPLICATION_JSON',
+      requestBody: payload,
+      validResponseCodes: '200:399'
+    )
   }
 
   def publishComment() {
     def results   = new groovy.json.JsonSlurper().parseText(script.env.ACTION_RESULTS_JSON)
-    def passed    = results.count { it.status == 'pass' }
     def failed    = results.count { it.status == 'fail' }
     def totalTime = String.format("%.2f", results.sum { it.execution_time } as double)
 
@@ -45,26 +46,26 @@ class GithubNotifier implements Serializable {
 
     def fence = '```'
     def table = """
-    ${summary}
+${summary}
 
-    > PR by **@${script.env.PR_AUTHOR}** · Build [#${script.env.BUILD_NUMBER}](${script.env.BUILD_URL}) · Total time: **${totalTime}s**
+> PR by **@${script.env.PR_AUTHOR}** · Build [#${script.env.BUILD_NUMBER}](${script.env.BUILD_URL}) · Total time: **${totalTime}s**
 
-    | # | Action | Status | Duration |
-    |---|--------|--------|----------|
-    ${results.collect { r ->
-      def icon = r.status == 'pass' ? '✅ pass' : '❌ fail'
-      def fname = '`' + r.file_name + '`'
-      "| ${r.job_index}/${r.total_jobs} | ${fname} | ${icon} | ${r.execution_time}s |"
-    }.join('\n')}
+| # | Action | Status | Duration |
+|---|--------|--------|----------|
+${results.collect { r ->
+  def icon  = r.status == 'pass' ? '✅ pass' : '❌ fail'
+  def fname = '`' + r.file_name + '`'
+  "| ${r.job_index}/${r.total_jobs} | ${fname} | ${icon} | ${r.execution_time}s |"
+}.join('\n')}
 
-    <details>
-    <summary>📋 Full metadata (JSON)</summary>
+<details>
+<summary>📋 Full metadata (JSON)</summary>
 
-    ${fence}json
-    ${groovy.json.JsonOutput.prettyPrint(script.env.ACTION_RESULTS_JSON)}
-    ${fence}
-    </details>
-    """
+${fence}json
+${groovy.json.JsonOutput.prettyPrint(script.env.ACTION_RESULTS_JSON)}
+${fence}
+</details>
+"""
     postComment(table)
   }
 }

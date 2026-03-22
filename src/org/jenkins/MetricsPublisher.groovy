@@ -33,11 +33,25 @@ class MetricsPublisher implements Serializable {
     lines << "jenkins_pr_passed_actions{${labels}} ${passed}"
     lines << "jenkins_pr_failed_actions{${labels}} ${failed}"
 
-    script.writeFile file: script.env.METRICS_FILE, text: lines.join('\n') + '\n'
-    script.sh """
-      curl -s --data-binary @${script.env.METRICS_FILE} \
-        ${pushgatewayUrl}/metrics/job/jenkins_pr/instance/${script.env.JOB_ID}
-    """
-    script.echo "Metrics pushed to Pushgateway"
+    def metricsContent = lines.join('\n') + '\n'
+    script.writeFile file: script.env.METRICS_FILE, text: metricsContent
+
+    // Publish metrics through logger as requested
+    script.echo "--- PROMETHEUS METRICS ---"
+    script.echo metricsContent
+    script.echo "--------------------------"
+
+    // Still attempt push to pushgateway if defined
+    if (pushgatewayUrl) {
+      try {
+        script.sh """
+          curl -s --data-binary @${script.env.METRICS_FILE} \
+            ${pushgatewayUrl}/metrics/job/jenkins_pr/instance/${script.env.JOB_ID}
+        """
+        script.echo "Metrics pushed to Pushgateway at ${pushgatewayUrl}"
+      } catch (Exception e) {
+        script.echo "Failed to push to Pushgateway: ${e.message}"
+      }
+    }
   }
 }
