@@ -2,7 +2,7 @@ def call(Map config = [:]) {
   def cfg = [
     actionsDir      : config.actionsDir       ?: '.jenkins_actions',
     vaultUrl        : config.vaultUrl         ?: 'http://vault.vault.svc.cluster.local:8200',
-    vaultCredential : config.vaultCredential  ?: 'jenkins-vault-approle',
+    vaultCredential : config.vaultCredential  ?: 'vault-approle', //jenkins credentail 
     vaultSecretPath : config.vaultSecretPath  ?: 'secret/jenkins/github',
     pushgatewayUrl  : config.pushgatewayUrl   ?: 'http://prometheus-pushgateway:9091',
     goVersion       : '1.26.1'
