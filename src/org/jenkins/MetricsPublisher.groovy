@@ -12,7 +12,7 @@ class MetricsPublisher implements Serializable {
     def labels  = "repository=\"${script.env.REPO}\",pr_id=\"${script.env.PR_ID}\",pr_author=\"${script.env.PR_AUTHOR}\",job_id=\"${script.env.JOB_ID}\""
 
     def lines = []
-    lines << "# HELP jenkins_pr_action_duration_seconds Execution time per action"
+    lines << "# HELP jenkins_pr_action_duration_sec onds Execution time per action"
     lines << "# TYPE jenkins_pr_action_duration_seconds gauge"
     lines << "# HELP jenkins_pr_action_status Status per action (1=pass, 0=fail)"
     lines << "# TYPE jenkins_pr_action_status gauge"
