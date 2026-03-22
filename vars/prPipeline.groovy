@@ -1,5 +1,4 @@
 def call(Map config = [:]) {
-  // Defaults any repo can override
   def cfg = [
     actionsDir      : config.actionsDir       ?: '.jenkins_actions',
     vaultUrl        : config.vaultUrl         ?: 'http://vault.vault.svc.cluster.local:8200',
@@ -31,11 +30,14 @@ def call(Map config = [:]) {
       stage('Fetch Secrets') {
         steps {
           script {
-            new org.jenkins.VaultHelper(this).fetchGithubToken(
-              cfg.vaultUrl,
-              cfg.vaultCredential,
-              cfg.vaultSecretPath
-            )
+            def log = new org.jenkins.LogHelper(this)
+            log.time('VaultHelper.fetchGithubToken') {
+              new org.jenkins.VaultHelper(this).fetchGithubToken(
+                cfg.vaultUrl,
+                cfg.vaultCredential,
+                cfg.vaultSecretPath
+              )
+            }
           }
         }
       }
@@ -43,7 +45,10 @@ def call(Map config = [:]) {
       stage('Discover Actions') {
         steps {
           script {
-            new org.jenkins.ActionRunner(this).discover(cfg.actionsDir)
+            def log = new org.jenkins.LogHelper(this)
+            log.time('ActionRunner.discover') {
+              new org.jenkins.ActionRunner(this).discover(cfg.actionsDir)
+            }
           }
         }
       }
@@ -51,7 +56,10 @@ def call(Map config = [:]) {
       stage('Run Actions') {
         steps {
           script {
-            new org.jenkins.ActionRunner(this).runAll()
+            def log = new org.jenkins.LogHelper(this)
+            log.time('ActionRunner.runAll') {
+              new org.jenkins.ActionRunner(this).runAll()
+            }
           }
         }
       }
@@ -59,7 +67,10 @@ def call(Map config = [:]) {
       stage('Publish PR Comment') {
         steps {
           script {
-            new org.jenkins.GithubNotifier(this).publishComment()
+            def log = new org.jenkins.LogHelper(this)
+            log.time('GithubNotifier.publishComment') {
+              new org.jenkins.GithubNotifier(this).publishComment()
+            }
           }
         }
       }
@@ -67,7 +78,10 @@ def call(Map config = [:]) {
       stage('Publish Prometheus Metrics') {
         steps {
           script {
-            new org.jenkins.MetricsPublisher(this).publish(cfg.pushgatewayUrl)
+            def log = new org.jenkins.LogHelper(this)
+            log.time('MetricsPublisher.publish') {
+              new org.jenkins.MetricsPublisher(this).publish(cfg.pushgatewayUrl)
+            }
           }
         }
       }
@@ -76,13 +90,21 @@ def call(Map config = [:]) {
     post {
       success {
         script {
-          new org.jenkins.GithubNotifier(this).setCommitStatus('jenkins/ci', 'success', 'All actions passed')
+          def log = new org.jenkins.LogHelper(this)
+          log.time('GithubNotifier.setCommitStatus [success]') {
+            new org.jenkins.GithubNotifier(this).setCommitStatus('jenkins/ci', 'success', 'All actions passed')
+          }
         }
       }
       failure {
         script {
-          new org.jenkins.GithubNotifier(this).setCommitStatus('jenkins/ci', 'failure', 'Some actions failed')
-          new org.jenkins.GithubNotifier(this).postComment("⚠️ **Pipeline error** — check [build logs](${env.BUILD_URL}console)")
+          def log = new org.jenkins.LogHelper(this)
+          log.time('GithubNotifier.setCommitStatus [failure]') {
+            new org.jenkins.GithubNotifier(this).setCommitStatus('jenkins/ci', 'failure', 'Some actions failed')
+          }
+          log.time('GithubNotifier.postComment [failure]') {
+            new org.jenkins.GithubNotifier(this).postComment("⚠️ **Pipeline error** — check [build logs](${env.BUILD_URL}console)")
+          }
         }
       }
       always {
@@ -91,3 +113,20 @@ def call(Map config = [:]) {
     }
   }
 }
+```
+
+---
+
+**What you'll see in the console:**
+```
+▶ [START] VaultHelper.fetchGithubToken
+✅ [DONE]  VaultHelper.fetchGithubToken — 0.83s
+
+▶ [START] ActionRunner.discover
+✅ [DONE]  ActionRunner.discover — 0.12s
+
+▶ [START] ActionRunner.runAll
+✅ [DONE]  ActionRunner.runAll — 14.37s     ← if this is huge, that's your stall
+
+▶ [START] GithubNotifier.publishComment
+❌ [FAIL]  GithubNotifier.publishComment — 2.1s — <error message>

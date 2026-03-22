@@ -59,9 +59,9 @@ ${results.collect { r ->
 <details>
 <summary>📋 Full metadata (JSON)</summary>
 
-\`\`\`json
+```json
 ${groovy.json.JsonOutput.prettyPrint(script.env.ACTION_RESULTS_JSON)}
-\`\`\`
+```
 </details>
 """
     postComment(table)
