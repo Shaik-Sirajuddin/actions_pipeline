@@ -8,8 +8,9 @@ class GithubNotifier implements Serializable {
   def postComment(String body) {
     def payload = groovy.json.JsonOutput.toJson([body: body])
     script.sh """
+      set +x
       curl -s -X POST \\
-        -H "Authorization: Bearer ${script.env.GITHUB_TOKEN}" \\
+        -H "Authorization: Bearer \${GITHUB_TOKEN}" \\
         -H "Content-Type: application/json" \\
         -d '${payload}' \\
         "https://api.github.com/repos/${script.env.REPO}/issues/${script.env.PR_ID}/comments"
@@ -25,8 +26,9 @@ class GithubNotifier implements Serializable {
       target_url : script.env.BUILD_URL
     ])
     script.sh """
+      set +x
       curl -s -X POST \\
-        -H "Authorization: Bearer ${script.env.GITHUB_TOKEN}" \\
+        -H "Authorization: Bearer \${GITHUB_TOKEN}" \\
         -H "Content-Type: application/json" \\
         -d '${payload}' \\
         "https://api.github.com/repos/${script.env.REPO}/statuses/${sha}"
