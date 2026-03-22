@@ -6,7 +6,15 @@ class GithubNotifier implements Serializable {
   GithubNotifier(script) { this.script = script }
 
   def postComment(String body) {
-    script.pullRequest.comment(body)
+    def payload = groovy.json.JsonOutput.toJson([body: body])
+    script.httpRequest(
+      httpMode: 'POST',
+      url: "https://api.github.com/repos/${script.env.REPO}/issues/${script.env.PR_ID}/comments",
+      customHeaders: [[name: 'Authorization', value: "token ${script.env.GITHUB_TOKEN}"]],
+      contentType: 'APPLICATION_JSON',
+      requestBody: payload,
+      validResponseCodes: '200:399'
+    )
   }
 
   def setCommitStatus(String context, String state, String description) {
