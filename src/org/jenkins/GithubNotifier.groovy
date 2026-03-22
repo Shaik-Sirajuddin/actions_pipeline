@@ -52,7 +52,8 @@ ${summary}
 |---|--------|--------|----------|
 ${results.collect { r ->
   def icon = r.status == 'pass' ? '✅ pass' : '❌ fail'
-  "| ${r.job_index}/${r.total_jobs} | \`${r.file_name}\` | ${icon} | ${r.execution_time}s |"
+  def fname = '`' + r.file_name + '`'
+  "| ${r.job_index}/${r.total_jobs} | ${fname} | ${icon} | ${r.execution_time}s |"
 }.join('\n')}
 
 <details>

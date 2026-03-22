@@ -2,8 +2,8 @@ def call(Map config = [:]) {
   // Defaults any repo can override
   def cfg = [
     actionsDir      : config.actionsDir       ?: '.jenkins_actions',
-    vaultUrl        : config.vaultUrl         ?: 'http://vault:8200',
-    vaultCredential : config.vaultCredential  ?: 'vault-approle',
+    vaultUrl        : config.vaultUrl         ?: 'http://vault.vault.svc.cluster.local:8200',
+    vaultCredential : config.vaultCredential  ?: 'jenkins-vault-approle',
     vaultSecretPath : config.vaultSecretPath  ?: 'secret/jenkins/github',
     pushgatewayUrl  : config.pushgatewayUrl   ?: 'http://prometheus-pushgateway:9091',
     goVersion       : config.goVersion        ?: '1.22'

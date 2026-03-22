@@ -1,9 +1,0 @@
-# Default Pipeline Configuration
-pipeline:
-  defaults:
-    actionsDir: ".jenkins_actions"
-    vaultUrl: "http://vault:8200"
-    vaultCredential: "vault-approle"
-    vaultSecretPath: "secret/jenkins/github"
-    pushgatewayUrl: "http://prometheus-pushgateway:9091"
-    goVersion: "1.22"
