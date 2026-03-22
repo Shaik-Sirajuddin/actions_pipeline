@@ -22,7 +22,7 @@ def call(Map config = [:]) {
     }
 
     triggers {
-      githubPullRequests()
+      githubPush()
     }
 
     stages {
