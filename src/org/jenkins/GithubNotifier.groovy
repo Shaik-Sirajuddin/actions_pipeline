@@ -43,27 +43,28 @@ class GithubNotifier implements Serializable {
       ? "## ✅ CI Passed — All ${results.size()} actions succeeded"
       : "## ❌ CI Failed — ${failed}/${results.size()} actions failed"
 
+    def fence = '```'
     def table = """
-${summary}
+    ${summary}
 
-> PR by **@${script.env.PR_AUTHOR}** · Build [#${script.env.BUILD_NUMBER}](${script.env.BUILD_URL}) · Total time: **${totalTime}s**
+    > PR by **@${script.env.PR_AUTHOR}** · Build [#${script.env.BUILD_NUMBER}](${script.env.BUILD_URL}) · Total time: **${totalTime}s**
 
-| # | Action | Status | Duration |
-|---|--------|--------|----------|
-${results.collect { r ->
-  def icon = r.status == 'pass' ? '✅ pass' : '❌ fail'
-  def fname = '`' + r.file_name + '`'
-  "| ${r.job_index}/${r.total_jobs} | ${fname} | ${icon} | ${r.execution_time}s |"
-}.join('\n')}
+    | # | Action | Status | Duration |
+    |---|--------|--------|----------|
+    ${results.collect { r ->
+      def icon = r.status == 'pass' ? '✅ pass' : '❌ fail'
+      def fname = '`' + r.file_name + '`'
+      "| ${r.job_index}/${r.total_jobs} | ${fname} | ${icon} | ${r.execution_time}s |"
+    }.join('\n')}
 
-<details>
-<summary>📋 Full metadata (JSON)</summary>
+    <details>
+    <summary>📋 Full metadata (JSON)</summary>
 
-```json
-${groovy.json.JsonOutput.prettyPrint(script.env.ACTION_RESULTS_JSON)}
-```
-</details>
-"""
+    ${fence}json
+    ${groovy.json.JsonOutput.prettyPrint(script.env.ACTION_RESULTS_JSON)}
+    ${fence}
+    </details>
+    """
     postComment(table)
   }
 }
