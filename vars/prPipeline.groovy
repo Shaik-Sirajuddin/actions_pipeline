@@ -5,7 +5,7 @@ def call(Map config = [:]) {
     vaultCredential : config.vaultCredential  ?: 'jenkins-vault-approle',
     vaultSecretPath : config.vaultSecretPath  ?: 'secret/jenkins/github',
     pushgatewayUrl  : config.pushgatewayUrl   ?: 'http://prometheus-pushgateway:9091',
-    goVersion       : config.goVersion        ?: '1.22'
+    goVersion       : '1.26.1'
   ]
 
   pipeline {
