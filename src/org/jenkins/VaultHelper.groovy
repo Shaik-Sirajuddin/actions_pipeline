@@ -23,4 +23,32 @@ class VaultHelper implements Serializable {
       script.echo "Secrets fetched from Vault successfully"
     }
   }
+
+  def fetchTokensFromVault(String vaultUrl, String credentialId, List<String> secrets) {
+    def vaultSecretsList = []
+    for (int i = 0; i < secrets.size(); i++) {
+      def secretName = secrets[i]
+      vaultSecretsList.add([
+        path: "secret/${script.env.REPO_NAME}/${secretName}",
+        secretValues: [
+          [envVar: secretName, vaultKey: secretName]
+        ]
+      ])
+    }
+
+    script.withVault(
+      configuration: [
+        vaultUrl         : vaultUrl,
+        vaultCredentialId: credentialId,
+        engineVersion    : 2
+      ],
+      vaultSecrets: vaultSecretsList
+    ) {
+      for (int i = 0; i < secrets.size(); i++) {
+        def secretName = secrets[i]
+        script.env."${secretName}" = script.env."${secretName}"
+      }
+      script.echo "Tokens fetched from Vault successfully"
+    }
+  }
 }
