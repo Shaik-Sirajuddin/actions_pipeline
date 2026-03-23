@@ -5,6 +5,7 @@ def call(Map config = [:]) {
     vaultCredential : config.vaultCredential  ?: 'vault-approle', //jenkins credentail 
     vaultSecretPath : config.vaultSecretPath  ?: 'secret/jenkins/github',
     pushgatewayUrl  : config.pushgatewayUrl   ?: 'http://prometheus-pushgateway:9091',
+    githubCredentialId: config.githubCredentialId ?: 'github-app-id',
     goVersion       : '1.26.1'
   ]
 
@@ -27,16 +28,15 @@ def call(Map config = [:]) {
 
     stages {
 
-      stage('Fetch Secrets') {
+      stage('Inject Secrets and Auth') {
         steps {
           script {
             def log = new org.jenkins.LogHelper(this)
-            log.time('VaultHelper.fetchGithubToken') {
-              new org.jenkins.VaultHelper(this).fetchGithubToken(
-                cfg.vaultUrl,
-                cfg.vaultCredential,
-                cfg.vaultSecretPath
-              )
+            log.time('DefaultEnv.inject') {
+              new org.jenkins.DefaultEnv(this).inject()
+            }
+            log.time('GithubAppAuth.verifyAndInject') {
+              new org.jenkins.GithubAppAuth(this).verifyAndInject(cfg.githubCredentialId)
             }
           }
         }
