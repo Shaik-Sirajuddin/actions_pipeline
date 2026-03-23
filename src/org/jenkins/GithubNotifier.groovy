@@ -6,6 +6,7 @@ class GithubNotifier implements Serializable {
   GithubNotifier(script) { this.script = script }
 
   def postComment(String body) {
+    new org.jenkins.GithubAppAuth(script).reissueToken()
     def payload = groovy.json.JsonOutput.toJson([body: body])
     script.sh """
       set +x
@@ -18,6 +19,7 @@ class GithubNotifier implements Serializable {
   }
 
   def setCommitStatus(String context, String state, String description) {
+    new org.jenkins.GithubAppAuth(script).reissueToken()
     def sha = script.sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
     def payload = groovy.json.JsonOutput.toJson([
       state      : state,
